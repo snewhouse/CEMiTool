@@ -795,24 +795,30 @@ module_to_gmt <- function(cem, directory="./Tables"){
         n_genes <- as.numeric(table(gene_modules[, "modules"]))
         n_genes <- n_genes[1:(length(n_genes)-1)]
         module_names <- as.character(unique(gene_modules[, "modules"]))
-        module_names <- module_names[-which(module_names =="Not.Correlated")]
+        ## check if Not.Correlated genes exist
+        if( any(module_names %in% "Not.Correlated") == FALSE ){
+            cat("All Genes are in a network - there is no [Not.Correlated] set of genes.")
+            module_names <- module_names
+        } else {
+            module_names <- module_names[-which(module_names == "Not.Correlated")]
+        }
+        #module_names <- module_names[-which(module_names =="Not.Correlated")]
         module_names <- module_names[order(nchar(module_names), module_names)]
-        
-        gmt_df  <- as.data.frame(matrix("", ncol = max(n_genes), nrow = length(n_genes)), stringsAsFactors = FALSE)
-        
+        ## corrected n_rows from n_genes to module_names
+        gmt_df  <- as.data.frame(matrix("", ncol = max(n_genes), nrow = length(module_names)), stringsAsFactors = FALSE)
+
         rownames(gmt_df) <- module_names
-        
+
         for (i in 1:length(module_names)){
             mod <- module_names[i]
             selected <- gene_modules[gene_modules$modules == mod, "genes"]
             gmt_df[mod, 1:(length(selected))] <- selected
         }
-        
+
         gmt_df <- as.data.frame(cbind(module_names, gmt_df))
         write.table(gmt_df, file.path(directory, "modules_genes.gmt"), sep="\t", col.names = FALSE)
     }
 }
-
 
 #' Save the CEMiTool object in files
 #'
